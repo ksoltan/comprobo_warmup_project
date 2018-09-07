@@ -15,9 +15,7 @@ class BumpStopBehavior(object):
         self.subscriber_bump = rospy.Subscriber("/bump", Bump, self.emergency_stop)
 
     def emergency_stop(self, bump_msg):
-        # If the bump sensor is positive
-        # print(bump_msg)
-        # print("\n")
+        # If any of the bump sensors are depressed, STAHP.
         if(bump_msg.leftSide or bump_msg.leftFront or bump_msg.rightSide or bump_msg.rightFront):
             print("EMERGENCY. STAHHHHP")
             self.my_cmd_vel.linear = Vector3(0, 0, 0)
@@ -28,21 +26,8 @@ class BumpStopBehavior(object):
     def run(self):
         # RUN ZE ROBIT!
         print("Woah. We started it. It should be moving. Plz")
-        # r = rospy.Rate(2)
-        print("Starting run")
-        # r.sleep()
         self.publisher_cmd_vel.publish(self.my_cmd_vel) # publish fixed speed forward
         rospy.spin()
-
-        # i = 0
-        # while i < 2:
-        #     self.publisher_cmd_vel.publish(self.my_cmd_vel) # publish fixed speed forward
-        #     r.sleep() # publish new timestamp every 2 seconds
-        #     i+=1
-        #     print(i)
-        # rospy.spin()
-
-        # rospy.spin()
 
 if __name__ == "__main__":
     node = BumpStopBehavior()
