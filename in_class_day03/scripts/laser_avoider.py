@@ -14,7 +14,7 @@ def mean(values):
 class PewPewNode(object):
     def __init__(self):
         rospy.init_node("pewpew_node")
-
+        print("Initialized node")
         # Setup publisher/subscription
         self.publisher_cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
         self.subscriber_scan = rospy.Subscriber("/scan", LaserScan, self.steer_away)

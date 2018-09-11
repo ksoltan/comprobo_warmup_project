@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ This program controls the Neato to move forward at a fixed speed
 and stop when it bumps into something."""
 from __future__ import print_function
