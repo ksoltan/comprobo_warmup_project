@@ -3,7 +3,6 @@
 This is a teleoperation script which allows you to control the robot, as well as change its state or mission. <- maybe this is better in another node?
 """
 import rospy
-from geometry_msgs.msg import Twist
 import sys, select, termios, tty
 
 class TeleopNode(object):
