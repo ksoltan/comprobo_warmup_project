@@ -49,10 +49,16 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate messages in the 'msg' folder
 add_message_files(
+<<<<<<< HEAD
   FILES
   DesiredVelocity.msg
   PolarVelocity2D.msg
   State.msg
+=======
+   FILES
+   DesiredVelocity.msg
+   PolarVelocity2D.msg
+>>>>>>> ca05a8f6e4865d88a363533c4d3e32ff355a646f
 )
 
 ## Generate services in the 'srv' folder
@@ -71,8 +77,13 @@ add_message_files(
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
+<<<<<<< HEAD
   DEPENDENCIES
   std_msgs
+=======
+   DEPENDENCIES
+   std_msgs
+>>>>>>> ca05a8f6e4865d88a363533c4d3e32ff355a646f
 )
 
 ################################################

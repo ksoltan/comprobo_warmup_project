@@ -5,19 +5,27 @@ Makes Neato move parallel to a wall.
 from __future__ import print_function
 
 from geometry_msgs.msg import Twist, Vector3
+from warmup_project.msg import DesiredVelocity, PolarVelocity2D
 from sensor_msgs.msg import LaserScan
 from math import sin, cos, sqrt, radians
 import rospy
 
 class WallFollow(object):
     def __init__(self):
-        rospy.init_node("wall_follow_node")
+        behavior = "wall_follow"
+        rospy.init_node(behavior + "_node")
+
+        self.behavior_id = behavior
 
         # Setup publisher/subscription
-        self.publisher_cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
+        self.publisher_cmd_vel = rospy.Publisher("/desired_cmd_vel", Twist, queue_size=10, latch=True)
         self.subscriber_scan = rospy.Subscriber("/scan", LaserScan, self.follow_wall)
 
     def follow_wall(self, scan_msg):
+        """
+        Callback function for /scan subscription. 
+        Uses proportional control to stay a certain distance from a wall.
+        """
         max_side_angle = 65
         baseline_angular_speed = 1
         top_angular_speed = 2
@@ -36,17 +44,28 @@ class WallFollow(object):
 
         if(angle_error != None):
             error = angle_error + distance_error
+            angular_speed = min(k_p * error * baseline_angular_speed, top_angular_speed)
 
             # publish a new cmd_vel
-            angular_speed = min(k_p * error * baseline_angular_speed, top_angular_speed)
-            new_cmd_vel = Twist(linear=Vector3(linear_speed, 0, 0), angular=Vector3(0, 0, angular_speed))
-            print("New angular vel = {}".format(k_p * error * baseline_angular_speed))
+            new_cmd_vel = DesiredVelocity(behavior_ID=self.behavior_id, 
+                desired_velocity=PolarVelocity2D(linear_speed=linear_speed, angular_speed=angular_speed))
             self.publisher_cmd_vel.publish(new_cmd_vel)
+
+            # TODO: Delete when above has been tested
+            # # publish a new cmd_vel
+            # angular_speed = min(k_p * error * baseline_angular_speed, top_angular_speed)
+            # new_cmd_vel = Twist(linear=Vector3(linear_speed, 0, 0), angular=Vector3(0, 0, angular_speed))
+            # print("New angular vel = {}".format(k_p * error * baseline_angular_speed))
+            # self.publisher_cmd_vel.publish(new_cmd_vel)
 
         print()
 
 
     def get_angular_error(self, ranges, max_side_angle):
+        """
+        Calculate the angle error, which is the angle between the direction of the neato and 
+        the wall.
+        """
         running_sum = 0
         range_count = 0
         for angle in range(1, max_side_angle):
@@ -67,6 +86,10 @@ class WallFollow(object):
             return error
 
     def estimate_distance_to_wall(self, ranges, max_side_angle):
+        """
+        Calculate the neato's distance to the wall, regardless of it's orientation relative
+        to the wall.
+        """
         distance_sum = 0
         distance_count = 0
         for angle in range(1, max_side_angle):
