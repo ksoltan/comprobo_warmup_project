@@ -3,7 +3,7 @@
 This is a teleoperation script which allows you to control the robot, as well as change its state or mission. <- maybe this is better in another node?
 """
 import rospy
-from warmup_project.msg import DesiredVelocity, PolarVelocity2D, State
+from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D, State
 from geometry_msgs.msg import Twist
 import sys, select, termios, tty
 
@@ -39,7 +39,7 @@ class TeleopNode(object):
         rospy.init_node("neato_teleop")
 
         # TODO: to make this standalone, change the topic to be published to based on whether is launches standalone or not.
-        self.cmd_vel_publisher = rospy.Publisher("/desired_cmd_vel", DesiredVelocity, queue_size=10)
+        self.cmd_vel_publisher = rospy.Publisher("/desired_cmd_vel", LabeledPolarVelocity2D, queue_size=10)
         # self.cmd_vel_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
         self.state_publisher = rospy.Publisher("/desired_state", State, queue_size=10)
         self.key_pressed = None
@@ -73,7 +73,7 @@ class TeleopNode(object):
                 print "Pressed this key: {}".format(self.key_pressed)
                 if(self.key_pressed in key_actions.keys()):
                     action = key_actions[self.key_pressed]
-                    desired_vel = DesiredVelocity(node_ID=str(State.TELEOP), velocity=action_bindings[action])
+                    desired_vel = LabeledPolarVelocity2D(node_ID=str(State.TELEOP), velocity=action_bindings[action])
                     print "Node state: {}\t Desired Vel: {}\t".format(State.TELEOP, desired_vel)
                     self.cmd_vel_publisher.publish(desired_vel)
                     # twist_msg = Twist()

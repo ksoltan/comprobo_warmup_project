@@ -4,13 +4,13 @@ Arbiter for tracking which state Neato is in, i.e. wall follow, people follow, t
 and deciding which to act on.
 """
 import rospy
-from warmup_project.msg import DesiredVelocity, PolarVelocity2D, State
+from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D, State
 from geometry_msgs.msg import Twist
 
 class WarmupNavArbiter(object):
     def __init__(self):
         rospy.init_node("warmup_nav_arbiter_node")
-        self.desired_vel_subscriber = rospy.Subscriber("/desired_cmd_vel", DesiredVelocity, self.update_current_request)
+        self.desired_vel_subscriber = rospy.Subscriber("/desired_cmd_vel", LabeledPolarVelocity2D, self.update_current_request)
         self.desired_state_subscriber = rospy.Subscriber("/desired_state", State, self.update_state)
         self.cmd_vel_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
         self.state = None

@@ -5,7 +5,7 @@ Makes Neato move parallel to a wall.
 from __future__ import print_function
 
 from geometry_msgs.msg import Twist, Vector3
-from warmup_project.msg import DesiredVelocity, PolarVelocity2D
+from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D
 from sensor_msgs.msg import LaserScan
 from math import sin, cos, sqrt, radians
 import rospy
@@ -23,7 +23,7 @@ class WallFollow(object):
 
     def follow_wall(self, scan_msg):
         """
-        Callback function for /scan subscription. 
+        Callback function for /scan subscription.
         Uses proportional control to stay a certain distance from a wall.
         """
         max_side_angle = 65
@@ -47,7 +47,7 @@ class WallFollow(object):
             angular_speed = min(k_p * error * baseline_angular_speed, top_angular_speed)
 
             # publish a new cmd_vel
-            new_cmd_vel = DesiredVelocity(behavior_ID=self.behavior_id, 
+            new_cmd_vel = LabeledPolarVelocity2D(behavior_ID=self.behavior_id,
                 desired_velocity=PolarVelocity2D(linear_speed=linear_speed, angular_speed=angular_speed))
             self.publisher_cmd_vel.publish(new_cmd_vel)
 
@@ -63,7 +63,7 @@ class WallFollow(object):
 
     def get_angular_error(self, ranges, max_side_angle):
         """
-        Calculate the angle error, which is the angle between the direction of the neato and 
+        Calculate the angle error, which is the angle between the direction of the neato and
         the wall.
         """
         running_sum = 0
