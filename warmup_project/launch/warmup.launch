@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="warmup_project" type="estop.py" name="estop_node"
+  output="screen"/>
+  <!-- <node pkg="warmuo_project" type="teleop.py" name="neato_teleop"
+  output="screen"/> -->
+  <node pkg="warmup_project" type="warmup_nav_arbiter.py" name="warmup_nav_arbiter_node"
+  output="screen"/>
+</launch>
