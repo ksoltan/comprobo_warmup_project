@@ -11,7 +11,8 @@ import sys, select, termios, tty
 # Define mapping of command names to robot states
 command_to_state = {
 "estop" : State.ESTOP,
-"wall": State.WALL_FOLLOW
+"wall": State.WALL_FOLLOW,
+"obstacle": State.OBSTACLE_AVOID
 }
 
 key_actions = {
@@ -43,6 +44,8 @@ class TeleopNode(object):
         self.key_pressed = None
         self.settings = termios.tcgetattr(sys.stdin)
 
+        self.last_state = command_to_state["estop"]
+
     def getKey(self):
         tty.setraw(sys.stdin.fileno())
         select.select([sys.stdin], [], [], 0)
@@ -51,7 +54,7 @@ class TeleopNode(object):
 
     def run(self):
         # Wait for a key to be pressed. Then, update the cmd_vel.
-        while self.key_pressed != '\x03':
+        while self.key_pressed != '\x03': # ctrl-C
             self.getKey()
 
             # Check for a behavior command if user enters a colon ':'
@@ -60,11 +63,16 @@ class TeleopNode(object):
                 new_command = raw_input()
                 # Set state to new state if the state has changed.
                 if(new_command in command_to_state.keys()):
-                    self.state_publisher.publish(command_to_state[new_command])
-                    print "Commanded state: {}".format(command_to_state[new_command])
+                    new_state = command_to_state[new_command]
+                    self.state_publisher.publish(new_state)
+                    print "Commanded state: {}".format(new_state)
+                    self.last_state = new_state
                 else:
                     print "Invalid command."
 
+            elif(self.key_pressed == 'r'):
+                    self.state_publisher.publish(new_state)
+                    print "Commanded state: {}".format(new_state)
             else:
                 print "Pressed this key: {}".format(self.key_pressed)
                 if(self.key_pressed in key_actions.keys()):

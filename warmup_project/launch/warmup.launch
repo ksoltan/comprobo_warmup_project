@@ -9,6 +9,6 @@
   output="screen"/>
   <node pkg="warmup_project" type="wall_follow.py" name="wall_follow_node"
   output="screen"/>
-  <node pkg="warmup_project" type="obstacle_avoid.py" name="obstacle_avoid_node"
-  output="screen"/>
+  <!-- <node pkg="warmup_project" type="obstacle_avoid.py" name="obstacle_avoid_node"
+  output="screen"/> -->
 </launch>
