@@ -6,6 +6,7 @@ import rospy
 from sensor_msgs.msg import LaserScan
 from warmup_project.msg import DesiredVelocity as DesiredVelocityMsg
 from warmup_project.msg import PolarVelocity2D as PolarVelocity2DMsg  # Avoid ambiguity with the PolarVelocity2D class
+from warmup_project.msg import State
 import math
 
 # TODO(matt): Move this out of this file
@@ -51,7 +52,7 @@ class ObstacleAvoid(object):
         behavior = "obstacle_avoid"
         rospy.init_node(behavior + "_node")
 
-        self.behavior_id = behavior
+        self.behavior_id = State.OBSTACLE_AVOID
 
         # Setup publisher/subscription
         self.publisher_cmd_vel = rospy.Publisher("/desired_cmd_vel", DesiredVelocityMsg, queue_size=10, latch=True)
