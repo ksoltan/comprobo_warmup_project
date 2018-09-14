@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """ This program waits for the Neato to bump into something, and then publishes an estop state."""
+
 from __future__ import print_function
 
 from geometry_msgs.msg import Twist, Vector3

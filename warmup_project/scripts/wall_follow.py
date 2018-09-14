@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Makes Neato move parallel to a wall.
 """
@@ -5,7 +6,7 @@ Makes Neato move parallel to a wall.
 from __future__ import print_function
 
 from geometry_msgs.msg import Twist, Vector3
-from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D
+from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D, State
 from sensor_msgs.msg import LaserScan
 from math import sin, cos, sqrt, radians
 import rospy
@@ -15,10 +16,10 @@ class WallFollow(object):
         behavior = "wall_follow"
         rospy.init_node(behavior + "_node")
 
-        self.behavior_id = behavior
+        self.behavior_id = str(State.WALL_FOLLOW)
 
         # Setup publisher/subscription
-        self.publisher_cmd_vel = rospy.Publisher("/desired_cmd_vel", Twist, queue_size=10, latch=True)
+        self.publisher_cmd_vel = rospy.Publisher("/desired_cmd_vel", LabeledPolarVelocity2D, queue_size=10, latch=True)
         self.subscriber_scan = rospy.Subscriber("/scan", LaserScan, self.follow_wall)
 
     def follow_wall(self, scan_msg):
@@ -47,8 +48,8 @@ class WallFollow(object):
             angular_speed = min(k_p * error * baseline_angular_speed, top_angular_speed)
 
             # publish a new cmd_vel
-            new_cmd_vel = LabeledPolarVelocity2D(behavior_ID=self.behavior_id,
-                desired_velocity=PolarVelocity2D(linear_speed=linear_speed, angular_speed=angular_speed))
+            new_cmd_vel = LabeledPolarVelocity2D(node_ID=self.behavior_id,
+                velocity=PolarVelocity2D(linear=linear_speed, angular=angular_speed))
             self.publisher_cmd_vel.publish(new_cmd_vel)
 
             # TODO: Delete when above has been tested
