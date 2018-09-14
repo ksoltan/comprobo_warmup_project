@@ -19,7 +19,7 @@ class EstopBehavior(object):
         # If any of the bump sensors are depressed, STAHP.
         if(bump_msg.leftSide or bump_msg.leftFront or bump_msg.rightSide or bump_msg.rightFront):
             print("EMERGENCY. STAHHHHP")
-            self.cmd_vel_publisher.publish(LabeledPolarVelocity2D(node_ID=str(State.ESTOP), velocity=PolarVelocity2D(linear=0, angular=0)))
+            self.cmd_vel_publisher.publish(LabeledPolarVelocity2D(node_ID=State.ESTOP, velocity=PolarVelocity2D(linear=0, angular=0)))
             self.state_publisher.publish(State.ESTOP)
 
     def run(self):

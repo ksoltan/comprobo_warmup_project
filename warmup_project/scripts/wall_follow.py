@@ -16,7 +16,7 @@ class WallFollow(object):
         behavior = "wall_follow"
         rospy.init_node(behavior + "_node")
 
-        self.behavior_id = str(State.WALL_FOLLOW)
+        self.behavior_id = State.WALL_FOLLOW
 
         # Setup publisher/subscription
         self.publisher_cmd_vel = rospy.Publisher("/desired_cmd_vel", LabeledPolarVelocity2D, queue_size=10, latch=True)

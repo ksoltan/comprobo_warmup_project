@@ -73,7 +73,7 @@ class TeleopNode(object):
                 print "Pressed this key: {}".format(self.key_pressed)
                 if(self.key_pressed in key_actions.keys()):
                     action = key_actions[self.key_pressed]
-                    desired_vel = LabeledPolarVelocity2D(node_ID=str(State.TELEOP), velocity=action_bindings[action])
+                    desired_vel = LabeledPolarVelocity2D(node_ID=State.TELEOP, velocity=action_bindings[action])
                     print "Node state: {}\t Desired Vel: {}\t".format(State.TELEOP, desired_vel)
                     self.cmd_vel_publisher.publish(desired_vel)
                     # twist_msg = Twist()

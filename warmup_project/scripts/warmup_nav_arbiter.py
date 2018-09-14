@@ -21,7 +21,7 @@ class WarmupNavArbiter(object):
 
     def update_current_request(self, desired_vel_msg):
         print "Updating a request."
-        self.current_requesting_node = int(desired_vel_msg.node_ID) # While using node names and state names identically
+        self.current_requesting_node = desired_vel_msg.node_ID # While using node names and state names identically
         self.desired_vel = desired_vel_msg.velocity
 
         # The TELEOP is special line (TELEOP takes precedence over all other states)
