@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
-Arbiter for tracking which state Neato is in, i.e. wall follow, people follow, teleop,
-and deciding which to act on.
+The warmup nav arbiter handles keeping track of the state of the Neato and routing
+the appropriate velocity commands. All commands coming from the Teleop program take
+precedence.
 """
 import rospy
 from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D, State
@@ -35,7 +36,6 @@ class WarmupNavArbiter(object):
 
     def set_desired_vel(self):
         print "Requesting node: {}\t Current state: {}".format(self.current_requesting_node, self.state)
-        # Always listen to TELEOP.
         if self.current_requesting_node == self.state:
             # convert the polar velocity to Twist msg
             twist_msg = Twist()
@@ -46,7 +46,7 @@ class WarmupNavArbiter(object):
             self.cmd_vel_publisher.publish(twist_msg)
 
     def run(self):
-        print "Hi! I'm your arbiter!"
+        print "Hi! I'm your arbiter! Let me route your velocities."
         rospy.spin()
 
 if __name__ == "__main__":

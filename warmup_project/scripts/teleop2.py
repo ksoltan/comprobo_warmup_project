@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 """
 This is a teleoperation script which allows you to control the robot, as well as change its state or mission.
-We chose to implement the state and velocity commands in one node because it is simpler to have one input
-screen open, rather than two separate ones.
+The script runs as a standalone node, bypassing the higher warmup_nav_arbiter, and only updating its state.
 """
 import rospy
 from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D, State
@@ -39,9 +38,7 @@ class TeleopNode(object):
     def __init__(self):
         # initialize teleop node
         rospy.init_node("neato_teleop")
-        # TODO: to make this standalone, change the topic to be published to based on whether is launches standalone or not.
-        self.cmd_vel_publisher = rospy.Publisher("/desired_cmd_vel", LabeledPolarVelocity2D, queue_size=10)
-        # self.cmd_vel_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
+        self.cmd_vel_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
         self.state_publisher = rospy.Publisher("/desired_state", State, queue_size=10)
         self.key_pressed = None
         self.settings = termios.tcgetattr(sys.stdin)
@@ -56,12 +53,11 @@ class TeleopNode(object):
         # Wait for a key to be pressed. Then, update the cmd_vel.
         while self.key_pressed != '\x03':
             self.getKey()
-            # TODO: may need a separate thread to concurrently keep publishing cmd_vel. Or set a timeout
 
+            # Check for a behavior command if user enters a colon ':'
             if(self.key_pressed == ':'):
                 print(":"), # Print : on same line as input entry
                 new_command = raw_input()
-                # print "Entered command :{}".format(new_command)
                 # Set state to new state if the state has changed.
                 if(new_command in command_to_state.keys()):
                     self.state_publisher.publish(command_to_state[new_command])
@@ -70,17 +66,18 @@ class TeleopNode(object):
                     print "Invalid command."
 
             else:
-                # Send appropriate command.
                 print "Pressed this key: {}".format(self.key_pressed)
                 if(self.key_pressed in key_actions.keys()):
+                    # If the user command exists, find the velocity binding
                     action = key_actions[self.key_pressed]
-                    desired_vel = LabeledPolarVelocity2D(node_ID=State.TELEOP, velocity=action_bindings[action])
-                    print "Node state: {}\t Desired Vel: {}\t".format(State.TELEOP, desired_vel)
-                    self.cmd_vel_publisher.publish(desired_vel)
-                    # twist_msg = Twist()
-                    # twist_msg.linear.x = desired_vel.velocity.linear
-                    # twist_msg.angular.z = desired_vel.velocity.angular
-                    # self.cmd_vel_publisher.publish(twist_msg)
+                    polar_velocity = action_bindings[action]
+                    twist_msg = Twist()
+                    twist_msg.linear.x = polar_velocity.linear
+                    twist_msg.angular.z = polar_velocity.angular
+                    # Publish the velocity to the neato
+                    self.cmd_vel_publisher.publish(twist_msg)
+                    # Publish the current state to TELEOP, in case higher warmup_nav_arbiter is listening
+                    self.state_publisher.publish(State.TELEOP)
                 else:
                     print "Invalid key"
 
@@ -88,10 +85,10 @@ if __name__ == "__main__":
     # Print out teleop options
     print "Use the following keys to move the Neato around:"
     for k in key_actions.keys():
-        print "'{}' : {}".format(k, key_actions[k])
+        print "'{}' : \t{}".format(k, key_actions[k])
     print "Type : and one of the following commands to call a behavior."
     for k in command_to_state.keys():
-        print ":{}".format(k)
+        print ":\t{}".format(k)
 
     node = TeleopNode()
     node.run()

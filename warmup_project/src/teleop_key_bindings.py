@@ -12,7 +12,6 @@ key_actions = {
 
 # Action bindings are in the format (linear.x, linear.y, linear.y, angular.z)
 # Neato cannot do pitch and roll (angular.x/y)
-# TODO: check the actual bindings. Also, what happens when setting linear.y/z?
 action_bindings = {
 'MOVE_LEFT' = (1, 0, 0, -1),
 'MOVE_RIGHT' = (1, 0, 0, 1),
