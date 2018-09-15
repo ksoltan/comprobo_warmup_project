@@ -2,7 +2,8 @@
 """
 The warmup nav arbiter handles keeping track of the state of the Neato and routing
 the appropriate velocity commands. All commands coming from the Teleop program take
-precedence.
+precedence. If the robot hits an estop mode, there is a slight grace period that allows
+the robot to be moved out of the situation.
 """
 import rospy
 from warmup_project.msg import LabeledPolarVelocity2D, PolarVelocity2D, State
@@ -21,7 +22,7 @@ class WarmupNavArbiter(object):
         self.desired_vel = PolarVelocity2D(linear=0, angular=0)
 
     def update_current_request(self, desired_vel_msg):
-        print "Updating a request."
+        # print "Updating a request."
         self.current_requesting_node = desired_vel_msg.node_ID # While using node names and state names identically
         self.desired_vel = desired_vel_msg.velocity
 
@@ -31,11 +32,11 @@ class WarmupNavArbiter(object):
         self.set_desired_vel()
 
     def update_state(self, state_msg):
-        print "Updating state to {}".format(state_msg.state)
+        # print "Updating state to {}".format(state_msg.state)
         self.state = state_msg.state
 
     def set_desired_vel(self):
-        print "Requesting node: {}\t Current state: {}".format(self.current_requesting_node, self.state)
+        # print "Requesting node: {}\t Current state: {}".format(self.current_requesting_node, self.state)
         if self.current_requesting_node == self.state:
             # convert the polar velocity to Twist msg
             twist_msg = Twist()

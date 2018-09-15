@@ -7,6 +7,8 @@
   output="screen"/> -->
   <node pkg="warmup_project" type="warmup_nav_arbiter.py" name="warmup_nav_arbiter_node"
   output="screen"/>
-  <node pkg="warmup_project" type="wall_follow.py" name="wall_follow_node"
+  <!-- <node pkg="warmup_project" type="wall_follow.py" name="wall_follow_node"
+  output="screen"/> -->
+  <node pkg="warmup_project" type="maintain_angle.py" name="maintain_angle_node"
   output="screen"/>
 </launch>

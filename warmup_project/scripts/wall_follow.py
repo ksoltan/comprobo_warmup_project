@@ -19,8 +19,8 @@ class WallFollow(object):
         self.behavior_id = State.WALL_FOLLOW
 
         # Setup publisher/subscription
-        self.publisher_cmd_vel = rospy.Publisher("/desired_cmd_vel", LabeledPolarVelocity2D, queue_size=10, latch=True)
-        self.subscriber_scan = rospy.Subscriber("/scan", LaserScan, self.follow_wall)
+        self.cmd_vel_publisher = rospy.Publisher("/desired_cmd_vel", LabeledPolarVelocity2D, queue_size=10, latch=True)
+        self.scan_subscriber = rospy.Subscriber("/scan", LaserScan, self.follow_wall)
 
     def follow_wall(self, scan_msg):
         """
@@ -50,14 +50,14 @@ class WallFollow(object):
             # publish a new cmd_vel
             new_cmd_vel = LabeledPolarVelocity2D(node_ID=self.behavior_id,
                 velocity=PolarVelocity2D(linear=linear_speed, angular=angular_speed))
-            self.publisher_cmd_vel.publish(new_cmd_vel)
+            self.cmd_vel_publisher.publish(new_cmd_vel)
 
             # TODO: Delete when above has been tested
             # # publish a new cmd_vel
             # angular_speed = min(k_p * error * baseline_angular_speed, top_angular_speed)
             # new_cmd_vel = Twist(linear=Vector3(linear_speed, 0, 0), angular=Vector3(0, 0, angular_speed))
             # print("New angular vel = {}".format(k_p * error * baseline_angular_speed))
-            # self.publisher_cmd_vel.publish(new_cmd_vel)
+            # self.cmd_vel_publisher.publish(new_cmd_vel)
 
         print()
 
