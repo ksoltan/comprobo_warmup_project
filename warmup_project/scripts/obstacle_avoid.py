@@ -52,7 +52,7 @@ class PolarVelocity(object):
         Generate PolarVelocity2DMsg for publishing to /desired_cmd_vel.
         """
         # Change the linear velocity so that it only moves forwards when the net_vel is in front of the neato
-        magnitude = self.magnitude * (2 * (math.cos(self.angle)**2) - 1)
+        magnitude = self.magnitude * math.cos(self.angle)# (2 * (math.cos(self.angle)**2) - 1)
         print("magnitude: {}\nangle: {}".format(self.magnitude, math.degrees(self.angle)))
         print("cos(angle) = {}\n".format(math.cos(self.angle)))
         print("linear: {}\nangular: {}".format(magnitude, math.degrees(self.angle)))
@@ -92,6 +92,7 @@ class ObstacleAvoid(object):
             print("No laser data")
             net_vel = base_vel
         else:
+            print("Range count: {}".format(range_count))
             net_obstacle_vel /= range_count
             net_vel = base_vel + net_obstacle_vel
 
