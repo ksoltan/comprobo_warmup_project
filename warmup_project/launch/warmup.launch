@@ -7,9 +7,17 @@
   output="screen"/> -->
   <node pkg="warmup_project" type="warmup_nav_arbiter.py" name="warmup_nav_arbiter_node"
   output="screen"/>
+<<<<<<< HEAD
+  <node pkg="warmup_project" type="wall_follow.py" name="wall_follow_node"
+  output="screen"/>
+  <node pkg="warmup_project" type="square.py" name="square_node"
+  output="screen"/>
+  <!-- <node pkg="warmup_project" type="obstacle_avoid.py" name="obstacle_avoid_node"
+=======
   <!-- <node pkg="warmup_project" type="wall_follow.py" name="wall_follow_node"
   output="screen"/> -->
   <!-- <node pkg="warmup_project" type="maintain_angle.py" name="maintain_angle_node"
+>>>>>>> 2dbedba30dfb7e04dd6aa9b5e5c2c4d780fd9002
   output="screen"/> -->
   <node pkg="warmup_project" type="obstacle_avoid.py" name="obstacle_avoid_node"
   output="screen"/>
