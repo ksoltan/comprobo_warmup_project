@@ -12,8 +12,15 @@ import sys, select, termios, tty
 command_to_state = {
 "estop" : State.ESTOP,
 "wall": State.WALL_FOLLOW,
+<<<<<<< HEAD
 "obstacle": State.OBSTACLE_AVOID,
 "square": State.SQUARE_DANCE,
+=======
+"ang": State.MAINTAIN_ANGLE,
+"dist": State.MAINTAIN_DISTANCE,
+"fol": State.FOLLOW
+"obstacle": State.OBSTACLE_AVOID
+>>>>>>> 2dbedba30dfb7e04dd6aa9b5e5c2c4d780fd9002
 }
 
 key_actions = {
@@ -42,6 +49,8 @@ class TeleopNode(object):
         rospy.init_node("neato_teleop")
         self.cmd_vel_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
         self.state_publisher = rospy.Publisher("/desired_state", State, queue_size=10)
+        self.target_publisher = rospy.Publisher("/target_follow", Twist, queue_size=10)
+        self.ang_target = 0
         self.key_pressed = None
         self.settings = termios.tcgetattr(sys.stdin)
 
@@ -68,6 +77,13 @@ class TeleopNode(object):
                     self.state_publisher.publish(new_state)
                     print "Commanded state: {}".format(new_state)
                     self.last_state = new_state
+                elif new_command == "mvt":
+                    twist_msg = Twist()
+                    self.ang_target += 1
+                    twist_msg.angular.z = self.ang_target
+                    print(twist_msg)
+                    self.state_publisher.publish(State.MAINTAIN_ANGLE)
+                    self.target_publisher.publish(twist_msg)
                 else:
                     print "Invalid command."
 
