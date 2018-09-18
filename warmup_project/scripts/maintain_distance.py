@@ -19,11 +19,12 @@ class MaintainDistance(object):
         self.behavior_id = State.MAINTAIN_DISTANCE
 
         # Set the distance to maintain relative to a target.
-        # The default is to keep 1 m behind the object
-        self.distance = rospy.get_param('distance', 1)
-        self.k_p = 0.5
-        self.max_linear_speed = 2
-        self.angular_speed = 1
+        # The default is to be at the target
+        self.distance = rospy.get_param('distance', 0)
+        self.angle = 0
+        self.k_p = 0.7
+        self.max_linear_speed = 0.5
+        self.max_angular_speed = 1
         self.target_pos = Twist()
 
         # Setup subscriber that defines the target. The target is at a position relative to
@@ -34,27 +35,35 @@ class MaintainDistance(object):
 
     def update_target(self, target_msg):
         self.target_pos = target_msg
+        # print("My target = {}".format(target_msg))
 
     '''update_postion: Calculated the error between the target and the current pose of the robot.
     Sends an updated cmd_vel to lessen the error.'''
     def update_position(self):
-        error = sqrt(self.target_pos.linear.x**2 + self.target_poslinear.y**2) - self.distance
+        error = sqrt(self.target_pos.linear.x**2 + self.target_pos.linear.y**2) - self.distance
+
+        # print("error: {} \t angular_error: {}".format(error, angular_error))
         # If the error is 0, the robot is at the correct distance. The new_cmd_vel should be 0
         # The farther the robot is from the object (positive error), the higher the linear speed should be.
         # If the error is negative, the robot is too close and needs to move back.
         # The robot should be moving along the vector to its object. Therefore, there is an angular speed.
-        new_cmd_vel = min(abs(self.k_p * error * self.max_linear_speed), self.max_linear_speed)
-        new_cmd_angle = min(abs(self.k_p * error * self.max_angular_speed), self.max_angular_speed)
-        new_polar_vel = LabeledPolarVelocity2D(node_ID=self.behavior_id, velocity=PolarVelocity2D(linear=new_cmd_vel, angular=new_cmd_angle))
+        new_cmd_vel = self.k_p * error * self.max_linear_speed
+        new_cmd_angle = self.k_p * error * self.max_angular_speed
+        if(abs(new_cmd_vel) > self.max_linear_speed):
+            new_cmd_vel = self.max_linear_speed
+        if(abs(new_cmd_angle) > self.max_angular_speed):
+            new_cmd_angle = self.max_angular_speed
+        print("new_cmd_vel - {}, new_cmd_angle - {}".format(new_cmd_vel, new_cmd_angle))
+        new_polar_vel = LabeledPolarVelocity2D(node_ID=State.FOLLOW, velocity=PolarVelocity2D(linear=new_cmd_vel, angular=new_cmd_angle))
 
         # TODO: should I be publishing to a different place?
-        cmd_vel_publisher.publish(new_polar_vel)
+        self.cmd_vel_publisher.publish(new_polar_vel)
 
     def run(self):
         r = rospy.Rate(1)
         while not rospy.is_shutdown():
             self.update_position()
-            r.sleep() # Calculate error every 10 seconds.
+            # r.sleep() # Calculate error every 10 seconds.
 
 if __name__ == "__main__":
     node = MaintainDistance()

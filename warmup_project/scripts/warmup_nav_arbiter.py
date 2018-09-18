@@ -25,7 +25,6 @@ class WarmupNavArbiter(object):
         # print "Updating a request."
         self.current_requesting_node = desired_vel_msg.node_ID # While using node names and state names identically
         self.desired_vel = desired_vel_msg.velocity
-
         # The TELEOP is special line (TELEOP takes precedence over all other states)
         if self.current_requesting_node == State.TELEOP:
             self.state = State.TELEOP
@@ -36,7 +35,7 @@ class WarmupNavArbiter(object):
         self.state = state_msg.state
 
     def set_desired_vel(self):
-        # print "Requesting node: {}\t Current state: {}".format(self.current_requesting_node, self.state)
+        print "Requesting node: {}\t Current state: {}".format(self.current_requesting_node, self.state)
         if self.current_requesting_node == self.state:
             # convert the polar velocity to Twist msg
             twist_msg = Twist()

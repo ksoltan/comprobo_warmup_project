@@ -1,0 +1,13 @@
+<launch>
+  <include file="$(find neato_node)/launch/bringup.launch">
+    <arg name="host" value="$(arg host)"/>
+  </include>
+  <node pkg="warmup_project" type="warmup_nav_arbiter.py" name="warmup_nav_arbiter_node"
+  output="screen"/>
+  <node pkg="warmup_project" type="estop.py" name="estop_node"
+  output="screen"/>
+  <!-- <node pkg="warmup_project" type="wall_detection_ransac.py" name="wall_detection_node"
+  output="screen"/> -->
+  <!-- <node pkg="warmup_project" type="maintain_distance.py" name="maintain_distance_node"
+  output="screen"/> -->
+</launch>
