@@ -12,11 +12,11 @@ import sys, select, termios, tty
 command_to_state = {
 "estop" : State.ESTOP,
 "wall": State.WALL_FOLLOW,
-"obstacle": State.OBSTACLE_AVOID,
-"square": State.SQUARE_DANCE,
 "ang": State.MAINTAIN_ANGLE,
 "dist": State.MAINTAIN_DISTANCE,
-"fol": State.FOLLOW
+"fol": State.FOLLOW,
+"obstacle": State.OBSTACLE_AVOID,
+"square": State.SQUARE_DANCE,
 }
 
 key_actions = {
