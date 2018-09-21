@@ -7,7 +7,7 @@ to achieve a certain specified distance and angle to the wall.
 from __future__ import print_function
 
 import rospy
-from geometry_msgs.msg import Twist, Vector3, Point
+from geometry_msgs.msg import Twist, Vector3, Point, PointStamped
 from warmup_project.msg import State, LabeledPolarVelocity2D, PolarVelocity2D
 from sensor_msgs.msg import LaserScan
 from visualization_msgs.msg import Marker
@@ -21,7 +21,7 @@ class WallDetectionRANSAC(object):
         # init node
         rospy.init_node("wall_detection_node")
 
-        self.distance_to_maintain = 1
+        self.distance_to_maintain = 0.75
         self.angle_to_maintain = 90
 
         # init subscriber to laser data
@@ -45,11 +45,16 @@ class WallDetectionRANSAC(object):
                                         Marker, queue_size=10)
         # The robot should be a chasing a point, so its target point should be f units further along the wall
         self.f = 1
+        self.prev_angle = 0 # Choose the vector that minimizes change
 
         # init publisher for target point
         self.target_marker_publisher = rospy.Publisher("/target_marker", Marker, queue_size=10)
-        self.target_point_publisher = rospy.Publisher("/target_follow", Twist, queue_size=10)
+        self.target_parallel_publisher = rospy.Publisher("/target_parallel", Marker, queue_size=10)
+        self.target_normal_publisher = rospy.Publisher("/target_normal", Marker, queue_size=10)
+        self.target_point_publisher = rospy.Publisher("/target_follow", PointStamped, queue_size=10)
         self.target_point = Vector2D()
+        self.target_point_parallel = Vector2D()
+        self.target_point_normal = Vector2D()
 
     def update_scan_ranges(self, scan_msg):
         self.scan = scan_msg
@@ -58,8 +63,8 @@ class WallDetectionRANSAC(object):
         while not rospy.is_shutdown():
             # Translate polar coordinates from scan to cartesian. Must do in loop
             # instead of in callback to prevent concurrent modification of self.all_points
-            self.get_points_from_scan()
-            if(self.all_points != None):
+
+            if(self.get_points_from_scan()):
                 self.ransac()
                 # Generate new target point
                 self.get_target_point()
@@ -68,19 +73,28 @@ class WallDetectionRANSAC(object):
                 marker_target.header.frame_id = "base_laser_link"
                 marker_target.type = Marker.ARROW
                 marker_target.points = [Vector3(0, 0, 0), Vector3(self.target_point.x, self.target_point.y, 0)]
-                # marker_target.pose.position.x = self.target_point.x
-                # marker_target.pose.position.y = self.target_point.y
-                marker_target.scale = Vector3(0.2, 0.5, 0.2)
+                marker_target.scale = Vector3(0.1, 0.4, 0.1)
                 marker_target.color.r = 1
                 marker_target.color.a = 0.5
 
                 # publish the new target point
                 self.target_marker_publisher.publish(marker_target)
-                # print(self.target_point)
-                twist_msg = Twist()
-                twist_msg.linear = Vector3(self.target_point.x, self.target_point.y, 0)
-                twist_msg.angular = Vector3(0, 0, self.target_point.angle)
-                self.target_point_publisher.publish(twist_msg)
+
+                marker_target.points = [Vector3(0, 0, 0), Vector3(self.target_point_normal.x, self.target_point_normal.y, 0)]
+                marker_target.color.r = 0
+                marker_target.color.g = 1
+                self.target_normal_publisher.publish(marker_target)
+
+                marker_target.points = [Vector3(0, 0, 0), Vector3(self.target_point_parallel.x, self.target_point_parallel.y, 0)]
+                marker_target.color.g = 0
+                marker_target.color.b = 1
+                self.target_parallel_publisher.publish(marker_target)
+
+                point_stamped = PointStamped()
+                point_stamped.header.stamp = rospy.Time(0)
+                point_stamped.header.frame_id = "base_laser_link"
+                point_stamped.point = Point(self.target_point.x, self.target_point.y, self.target_point.angle)
+                self.target_point_publisher.publish(point_stamped)
 
                 marker_line = Marker()
                 marker_line.header.frame_id = "base_laser_link"
@@ -89,6 +103,7 @@ class WallDetectionRANSAC(object):
                 marker_line.color.g = 0.9
                 marker_line.color.a = 0.5
                 marker_line.points = self.inliers
+                # marker_line.points = self.get_all_points()
                 self.marker_publisher.publish(marker_line)
 
     def ransac(self):
@@ -99,7 +114,7 @@ class WallDetectionRANSAC(object):
         best_c = 0
         max_inliers = 0
         i = 0
-        while i < 60:
+        while i < 100:
             # choose two random number of angles to take readings from, fit a line to them, and check how many inliers exist
             self.inliers = [] # Reset the inliers
             a, b, c = self.generate_sample_line()
@@ -112,6 +127,7 @@ class WallDetectionRANSAC(object):
                 best_c = c
                 max_inliers = num_inliers
             i += 1
+
         if(max_inliers > 20):
             print(max_inliers)
             print("Updating Best function")
@@ -133,6 +149,9 @@ class WallDetectionRANSAC(object):
     # Calculate least square sums from proposed line for all points
     # Count the number of points that are close enough.
     def get_num_inliers(self, a, b, c):
+        if a == 0.0 and b == 0.0:
+            print("Problem with the line...")
+            return 0
         inlier_distance = 0.05
         num_inliers = 0
         for p in self.all_points:
@@ -169,6 +188,8 @@ class WallDetectionRANSAC(object):
                     all_points.append(Vector2D(angle=angle + 180, magnitude=d, unit="deg"))
                     # print("Appended point: {}".format(Vector2D(angle=angle, magnitude=d, unit="deg")))
             self.all_points = all_points
+            return len(self.all_points) > 2
+        return False
 
     # Find the point that the robot should attempt to approach (minimize its positional error to)
     # to maintain the angle and distance specified.
@@ -180,28 +201,36 @@ class WallDetectionRANSAC(object):
             normal_distance_to_wall = 1.0 * self.c / self.b
             v_parallel = Vector2D(x=0.0, y=normal_distance_to_wall)
             v_normal = v_parallel.normal()
-            # print("Horiz")
         elif(self.b == 0.0): # Line if vertical
             normal_distance_to_wall = 1.0 * self.c
             v_parallel = Vector2D(x=normal_distance_to_wall, y=0.0)
             v_normal = v_parallel.normal()
-            # print("Vert")
         else:
             # Get the angle of the normal to the line
             v_parallel = Vector2D(x=1, y=1.0 * self.a / self.b)
             v_normal = v_parallel.normal().hat()
             normal_distance_to_wall = 1.0 * self.c / self.b * cos(radians(90) - v_normal.angle)
             v_normal = v_normal * normal_distance_to_wall
-            # print("Reg")
-        self.target_point = v_parallel.hat() * self.f + v_normal.hat() * (v_normal.magnitude - self.distance_to_maintain)
-        self.target_point.rotate(90)
+        v_forward = v_parallel.hat() * self.f + v_normal.hat() * (v_normal.magnitude - self.distance_to_maintain)
+        v_backward = v_parallel.hat() * -1.0 * self.f + v_normal.hat() * (v_normal.magnitude - self.distance_to_maintain)
+        print("Forward = {}\n Backward = {}".format(v_forward, v_backward))
+        # self.target_point = v_parallel.hat() * -1.0 * self.f
+        self.target_point_parallel = v_parallel.hat() * self.f
+        self.target_point_normal = v_normal.hat() * (v_normal.magnitude - self.distance_to_maintain)
+        # if(self.prev_angle - v_forward.angle < self.prev_angle - v_backward.angle):
+        self.target_point = self.target_point_parallel + self.target_point_normal
+        print("CHOSE FORWARD")
+        # else:
+        #     self.target_point = self.target_point_parallel - self.target_point_normal
+        #     print("CHOSE BACKWARD")
+        self.prev_angle = self.target_point.angle
 
     def is_valid_reading(self, reading):
         return self.scan.range_min <= reading <= self.scan.range_max
 
     def get_all_points(self):
         l = []
-        for p in self.all_points:
+        for p in self.all_target_points:
             l.append(Point(x=p.x, y=p.y, z=0))
         return l
 

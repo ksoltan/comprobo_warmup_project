@@ -41,9 +41,6 @@ class Vector2D(object):
     def __eq__(self, other):
         return self._x == other.x and self._y == other.y
 
-    # def __ne__(self, other):
-    #     return self._x != other.x and self._y != other.y
-
     def __div__(self, scalar):
         return Vector2D(magnitude=self.magnitude / scalar, angle=self.angle)
 

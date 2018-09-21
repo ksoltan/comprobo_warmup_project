@@ -32,10 +32,10 @@ key_actions = {
 action_bindings = {
 'MOVE_LEFT' : PolarVelocity2D(linear=0.5, angular=1),
 'MOVE_RIGHT' : PolarVelocity2D(linear=0.5, angular=-1),
-'MOVE_FORWARD' : PolarVelocity2D(linear=1, angular=0),
-'MOVE_BACKWARD' : PolarVelocity2D(linear=-1, angular=0),
-"TURN_LEFT" : PolarVelocity2D(linear=0, angular=1),
-"TURN_RIGHT" : PolarVelocity2D(linear=0, angular=-1),
+'MOVE_FORWARD' : PolarVelocity2D(linear=0.5, angular=0),
+'MOVE_BACKWARD' : PolarVelocity2D(linear=-0.5, angular=0),
+"TURN_LEFT" : PolarVelocity2D(linear=0, angular=0.5),
+"TURN_RIGHT" : PolarVelocity2D(linear=0, angular=-0.5),
 "E_STOP" : PolarVelocity2D(linear=0, angular=0)
 }
 
@@ -45,7 +45,6 @@ class TeleopNode(object):
         rospy.init_node("neato_teleop")
         self.cmd_vel_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10, latch=True)
         self.state_publisher = rospy.Publisher("/desired_state", State, queue_size=10)
-        self.target_publisher = rospy.Publisher("/target_follow", Twist, queue_size=10)
         self.ang_target = 0
         self.key_pressed = None
         self.settings = termios.tcgetattr(sys.stdin)
@@ -73,13 +72,6 @@ class TeleopNode(object):
                     self.state_publisher.publish(new_state)
                     print "Commanded state: {}".format(new_state)
                     self.last_state = new_state
-                elif new_command == "mvt":
-                    twist_msg = Twist()
-                    self.ang_target += 1
-                    twist_msg.angular.z = self.ang_target
-                    print(twist_msg)
-                    self.state_publisher.publish(State.MAINTAIN_ANGLE)
-                    self.target_publisher.publish(twist_msg)
                 else:
                     print "Invalid command."
 
